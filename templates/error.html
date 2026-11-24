@@ -1,0 +1,4 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="error-page surface-panel"><div class="error-icon">{{ icon('warning', 34) }}</div><div class="eyebrow">ERROR {{ code }}</div><h1>{{ page_title }}</h1><p>{{ message }}</p><a href="{{ url_for('dashboard') }}" class="btn btn-primary">{{ icon('arrow-left', 17) }} Return to dashboard</a></div>
+{% endblock %}

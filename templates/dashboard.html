@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">CAREER COMMAND CENTER</div><h1>Dashboard <span class="heading-dot">.</span></h1><p>A clearer view of every opportunity, from saved job to offer.</p></div>
+  <div class="head-actions"><a class="btn btn-primary" href="{{ url_for('new_record', entity='applications') }}">{{ icon('plus', 18) }} Add application</a></div>
+</div>
+<section class="hero-banner">
+  <div class="hero-copy"><div class="hero-pill">{{ icon('match', 15) }} STAY ONE STEP AHEAD</div><h2>Your next opportunity<br>starts here.</h2><p>Organize every lead, track progress, and find roles that fit your skills.</p><a class="hero-link" href="{{ url_for('job_match') }}">Explore Job Match {{ icon('arrow-right', 17) }}</a></div>
+  <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><div class="hero-center">{{ icon('trending', 35) }}</div><div class="floating-ring floating-one"></div><div class="floating-ring floating-two"></div></div>
+</section>
+<div class="section-heading"><h2>At a glance</h2><span>Live database statistics</span></div>
+<div class="metrics-grid">
+  <a href="{{ url_for('list_records', entity='companies') }}" class="metric-card"><div class="metric-top"><span>Companies</span><span class="metric-icon violet">{{ icon('companies') }}</span></div><strong>{{ stats.companies }}</strong><span class="metric-bottom">Organizations tracked {{ icon('arrow-right', 16) }}</span></a>
+  <a href="{{ url_for('list_records', entity='jobs') }}" class="metric-card"><div class="metric-top"><span>Job opportunities</span><span class="metric-icon blue">{{ icon('jobs') }}</span></div><strong>{{ stats.jobs }}</strong><span class="metric-bottom">Open your job list {{ icon('arrow-right', 16) }}</span></a>
+  <a href="{{ url_for('list_records', entity='applications') }}" class="metric-card"><div class="metric-top"><span>Applications</span><span class="metric-icon amber">{{ icon('applications') }}</span></div><strong>{{ stats.applications }}</strong><span class="metric-bottom">Review your pipeline {{ icon('arrow-right', 16) }}</span></a>
+  <a href="{{ url_for('list_records', entity='contacts') }}" class="metric-card"><div class="metric-top"><span>Network contacts</span><span class="metric-icon green">{{ icon('contacts') }}</span></div><strong>{{ stats.contacts }}</strong><span class="metric-bottom">Build your network {{ icon('arrow-right', 16) }}</span></a>
+</div>
+<div class="dashboard-grid">
+  <section class="surface-panel pipeline-panel">
+    <div class="panel-heading"><div><h2>Application pipeline</h2><p>Status breakdown across your applications</p></div><span class="panel-counter">{{ stats.applications }} total</span></div>
+    {% for status in ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'] %}
+    <a class="pipeline-row" href="{{ url_for('list_records', entity='applications', status=status) }}"><div class="pipeline-caption"><span>{{ status }}</span><strong>{{ statuses.get(status, 0) }}</strong></div><div class="progress-track"><span class="progress-bar progress-{{ status|lower }}" style="width:{{ (statuses.get(status, 0) / stats.applications * 100)|round(0)|int if stats.applications else 0 }}%"></span></div></a>
+    {% endfor %}
+    {% if not stats.applications %}<p class="muted-note">Once you add applications, you'll see your hiring pipeline take shape.</p>{% endif %}
+  </section>
+  <section class="surface-panel activity-panel">
+    <div class="panel-heading"><div><h2>Recent activity</h2><p>Your latest application updates</p></div><a class="small-link" href="{{ url_for('list_records', entity='applications') }}">View all {{ icon('arrow-right', 15) }}</a></div>
+    {% if recent %}<div class="activity-list">
+      {% for a in recent %}<a href="{{ url_for('detail_record', entity='applications', record_id=a.application_id) }}" class="activity-item"><div class="activity-avatar">{{ a.company_name|initials }}</div><div class="activity-main"><strong>{{ a.job_title }}</strong><span>{{ a.company_name }} · {{ a.application_date|datefmt }}</span></div><span class="status-tag status-{{ a.status|lower }}">{{ a.status }}</span></a>{% endfor %}
+    </div>{% else %}<div class="empty-mini"><div class="empty-icon">{{ icon('applications', 28) }}</div><strong>No applications yet</strong><p>Add your first application to see it here.</p><a class="small-link" href="{{ url_for('new_record', entity='applications') }}">Add one {{ icon('arrow-right', 15) }}</a></div>{% endif %}
+  </section>
+</div>
+{% endblock %}

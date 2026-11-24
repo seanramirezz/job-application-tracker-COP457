@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">YOUR WORKSPACE / {{ cfg.label|upper }}</div><h1>{{ cfg.label }}<span class="heading-dot">.</span></h1><p>{{ cfg.subtitle }}</p></div>
+  <div class="head-actions"><a class="btn btn-primary" href="{{ url_for('new_record', entity=entity) }}">{{ icon('plus', 18) }} Add {{ cfg.singular|lower }}</a></div>
+</div>
+<section class="surface-panel table-panel">
+  <div class="table-controls"><div class="table-title"><h2>All {{ cfg.label|lower }}</h2><span class="count-pill">{{ rows|length }}</span></div>
+    <form method="get" action="{{ url_for('list_records', entity=entity) }}" class="table-search" role="search"><div class="search-wrapper">{{ icon('search', 18) }}<input name="q" value="{{ q }}" aria-label="Search {{ cfg.label|lower }}" placeholder="Search {{ cfg.label|lower }}..." maxlength="100"></div>
+    {% if entity == 'applications' %}<select name="status" aria-label="Filter by status"><option value="">All statuses</option>{% for status in statuses %}<option value="{{ status }}" {% if filter_status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select>{% endif %}
+    <button type="submit" class="btn btn-secondary search-button">Search</button></form></div>
+  {% if rows %}
+    <div class="table-scroll"><table class="data-table"><thead><tr>
+      {% if entity == 'companies' %}<th>Company</th><th>Location</th><th>Jobs</th><th>Contacts</th>
+      {% elif entity == 'jobs' %}<th>Position</th><th>Company</th><th>Type</th><th>Salary range</th><th>Skills</th>
+      {% elif entity == 'applications' %}<th>Opportunity</th><th>Applied on</th><th>Status</th><th>Resume</th>
+      {% else %}<th>Contact</th><th>Company</th><th>Phone</th><th>LinkedIn</th>{% endif %}
+      <th class="align-right">Actions</th></tr></thead><tbody>
+    {% for item in rows %}
+      <tr>
+      {% if entity == 'companies' %}
+        <td><div class="entity-cell"><div class="entity-avatar">{{ item.company_name|initials }}</div><div><a class="item-title" href="{{ url_for('detail_record', entity=entity, record_id=item.company_id) }}">{{ item.company_name }}</a><div class="item-meta">{{ item.industry or 'No industry added' }}</div></div></div></td><td>{{ [item.city, item.state]|select|join(', ') or '—' }}</td><td><span class="number-pill">{{ item.job_count }}</span></td><td><span class="number-pill">{{ item.contact_count }}</span></td>
+      {% elif entity == 'jobs' %}
+        <td><a class="item-title" href="{{ url_for('detail_record', entity=entity, record_id=item.job_id) }}">{{ item.job_title }}</a><div class="item-meta">{{ item.date_posted|datefmt }}</div></td><td>{{ item.company_name }}</td><td><span class="soft-tag">{{ item.job_type or '—' }}</span></td><td>{% if item.salary_min is not none or item.salary_max is not none %}{{ item.salary_min|money }} – {{ item.salary_max|money }}{% else %}—{% endif %}</td><td><span class="skills-count">{{ (item.requirements|required)|length }} required</span></td>
+      {% elif entity == 'applications' %}
+        <td><a class="item-title" href="{{ url_for('detail_record', entity=entity, record_id=item.application_id) }}">{{ item.job_title }}</a><div class="item-meta">{{ item.company_name }}</div></td><td>{{ item.application_date|datefmt }}</td><td><span class="status-tag status-{{ item.status|lower }}">{{ item.status }}</span></td><td>{{ item.resume_version or '—' }}</td>
+      {% else %}
+        <td><div class="entity-cell"><div class="entity-avatar avatar-contact">{{ item.contact_name|initials }}</div><div><a class="item-title" href="{{ url_for('detail_record', entity=entity, record_id=item.contact_id) }}">{{ item.contact_name }}</a><div class="item-meta">{{ item.title or '—' }}</div></div></div></td><td>{{ item.company_name }}</td><td>{{ item.phone or '—' }}</td><td>{% if item.linkedin_url %}<a class="small-link" href="{{ item.linkedin_url|safe_url }}" target="_blank" rel="noopener noreferrer">Profile {{ icon('external', 14) }}</a>{% else %}—{% endif %}</td>
+      {% endif %}
+      <td class="align-right"><div class="table-actions"><a class="icon-action" title="View" aria-label="View {{ cfg.singular }}" href="{{ url_for('detail_record', entity=entity, record_id=item[cfg.key]) }}">{{ icon('arrow-right', 17) }}</a><a class="icon-action" title="Edit" aria-label="Edit {{ cfg.singular }}" href="{{ url_for('edit_record', entity=entity, record_id=item[cfg.key]) }}">{{ icon('edit', 17) }}</a><form method="post" action="{{ url_for('delete_record', entity=entity, record_id=item[cfg.key]) }}" onsubmit="return window.confirm('Delete this {{ cfg.singular|lower }}? This cannot be undone.')"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="icon-action danger" type="submit" title="Delete" aria-label="Delete {{ cfg.singular }}">{{ icon('trash', 17) }}</button></form></div></td>
+      </tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% else %}<div class="empty-state"><div class="empty-icon">{{ icon(entity, 31) }}</div><h3>{% if q or filter_status %}No matching records{% else %}No {{ cfg.label|lower }} yet{% endif %}</h3><p>{% if q or filter_status %}Try another search or clear your filters.{% else %}Your {{ cfg.label|lower }} will appear here. Start by adding one.{% endif %}</p>{% if q or filter_status %}<a class="btn btn-secondary" href="{{ url_for('list_records', entity=entity) }}">Clear filters</a>{% else %}<a class="btn btn-primary" href="{{ url_for('new_record', entity=entity) }}">{{ icon('plus', 18) }} Add {{ cfg.singular|lower }}</a>{% endif %}</div>{% endif %}
+</section>
+{% endblock %}

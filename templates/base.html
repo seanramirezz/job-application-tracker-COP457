@@ -1,0 +1,59 @@
+{% from 'partials/icons.html' import icon %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111b30">
+  <meta name="description" content="A full-stack job application tracker using Flask and MySQL.">
+  <title>{{ page_title or 'Dashboard' }} · ApplyFlow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a href="{{ url_for('dashboard') }}" class="brand" aria-label="ApplyFlow dashboard">
+        <div class="brand-mark">{{ icon('jobs', 24) }}</div>
+        <div class="brand-copy"><strong>ApplyFlow</strong><span>JOB TRACKER</span></div>
+      </a>
+      <p class="sidebar-section-label">WORKSPACE</p>
+      <nav class="sidebar-nav">
+        <a class="nav-link {{ 'active' if page == 'dashboard' }}" href="{{ url_for('dashboard') }}">{{ icon('dashboard') }}<span>Overview</span></a>
+        <a class="nav-link {{ 'active' if page == 'companies' }}" href="{{ url_for('list_records', entity='companies') }}">{{ icon('companies') }}<span>Companies</span></a>
+        <a class="nav-link {{ 'active' if page == 'jobs' }}" href="{{ url_for('list_records', entity='jobs') }}">{{ icon('jobs') }}<span>Jobs</span></a>
+        <a class="nav-link {{ 'active' if page == 'applications' }}" href="{{ url_for('list_records', entity='applications') }}">{{ icon('applications') }}<span>Applications</span></a>
+        <a class="nav-link {{ 'active' if page == 'contacts' }}" href="{{ url_for('list_records', entity='contacts') }}">{{ icon('contacts') }}<span>Contacts</span></a>
+        <div class="nav-divider"></div>
+        <a class="nav-link nav-match {{ 'active' if page == 'job-match' }}" href="{{ url_for('job_match') }}">{{ icon('match') }}<span>Job Match</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="workspace-card">
+          <div class="workspace-icon">{{ icon('database', 21) }}</div>
+          <div><strong>MySQL-backed data</strong><span>Full-stack project</span></div>
+        </div>
+        <div class="sidebar-foot">COP4751 · Final Project</div>
+      </div>
+    </aside>
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-path"><span>Workspace</span><span class="topbar-divider">/</span><strong>{{ page_title or 'Dashboard' }}</strong></div>
+        <div class="topbar-right"><span class="topbar-dot"></span><span>Job Application Tracker</span></div>
+      </header>
+      <main id="main" class="content-wrap">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="alerts" role="status" aria-live="polite">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ icon('check' if category == 'success' else 'warning', 18) }}<span>{{ message }}</span></div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+        <footer class="page-footer"><span>ApplyFlow · Built with Python, Flask &amp; MySQL</span><span>Made for COP4751</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

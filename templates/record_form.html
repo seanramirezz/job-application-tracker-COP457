@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head"><div><a class="back-link" href="{{ url_for('detail_record', entity=entity, record_id=record[cfg.key]) if editing else url_for('list_records', entity=entity) }}">{{ icon('arrow-left', 16) }} Back to {{ cfg.label|lower }}</a><h1>{{ 'Edit' if editing else 'Add' }} {{ cfg.singular|lower }}<span class="heading-dot">.</span></h1><p>{{ 'Update this record and keep the information accurate.' if editing else 'Fill out the details to create a new record.' }}</p></div></div>
+{% if entity in ('jobs','contacts') and not relations.get('companies') %}<div class="alert alert-error">{{ icon('warning', 18) }}<span>You need at least one company first. <a href="{{ url_for('new_record', entity='companies') }}">Add a company</a> before saving.</span></div>{% elif entity == 'applications' and not relations.get('jobs') %}<div class="alert alert-error">{{ icon('warning', 18) }}<span>You need at least one job first. <a href="{{ url_for('new_record', entity='jobs') }}">Add a job</a> before saving.</span></div>{% endif %}
+<div class="form-layout"><form method="post" action="{{ url_for('edit_record', entity=entity, record_id=record[cfg.key]) if editing else url_for('new_record', entity=entity) }}" class="surface-panel edit-panel" novalidate><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+  <div class="form-panel-head"><div class="form-step">01</div><div><h2>{{ cfg.singular }} information</h2><p>Fields marked <strong>*</strong> are required.</p></div></div>
+  {% if errors %}<div class="form-error-summary" role="alert">Please review the highlighted fields below and try again.</div>{% endif %}
+  <div class="fields-grid">
+    {% for field in fields %}
+    <div class="form-field {{ 'field-wide' if field.wide else '' }} {{ 'has-error' if errors.get(field.name) else '' }} {{ 'checkbox-field' if field.type == 'checkbox' else '' }}">
+      {% if field.type == 'checkbox' %}
+        <label class="checkbox-label"><input type="checkbox" name="{{ field.name }}" value="on" {% if values.get(field.name) %}checked{% endif %}><span class="checkbox-box"></span><span>{{ field.label }}</span></label>
+      {% else %}
+        <label for="{{ field.name }}">{{ field.label }} {% if field.required %}<span class="required-mark">*</span>{% endif %}</label>
+        {% if field.type == 'select' %}
+          <select id="{{ field.name }}" name="{{ field.name }}" {% if field.required %}required{% endif %} aria-invalid="{{ 'true' if errors.get(field.name) else 'false' }}">
+            {% if field.relation %}<option value="">Select {{ field.label|lower }}...</option>{% for option in relations.get(field.relation, []) %}<option value="{{ option.value }}" {% if values.get(field.name)|string == option.value|string %}selected{% endif %}>{{ option.label }}</option>{% endfor %}
+            {% else %}{% for option in field.options %}<option value="{{ option }}" {% if values.get(field.name, '')|string == option|string %}selected{% endif %}>{{ option }}</option>{% endfor %}{% endif %}
+          </select>
+        {% elif field.type == 'textarea' %}
+          <textarea id="{{ field.name }}" name="{{ field.name }}" rows="{{ field.rows or 3 }}" placeholder="{{ field.placeholder or '' }}" aria-invalid="{{ 'true' if errors.get(field.name) else 'false' }}">{{ values.get(field.name) or '' }}</textarea>
+        {% else %}
+          <input id="{{ field.name }}" name="{{ field.name }}" type="{{ field.type }}" value="{{ values.get(field.name) or '' }}" {% if field.required %}required{% endif %} {% if field.maxlength %}maxlength="{{ field.maxlength }}"{% endif %} {% if field.min is defined %}min="{{ field.min }}"{% endif %} {% if field.step %}step="{{ field.step }}"{% endif %} placeholder="{{ field.placeholder or '' }}" aria-invalid="{{ 'true' if errors.get(field.name) else 'false' }}">
+        {% endif %}
+        {% if field.hint %}<span class="field-hint">{{ field.hint }}</span>{% endif %}
+        {% if errors.get(field.name) %}<span class="field-error" role="alert">{{ errors[field.name] }}</span>{% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="form-actions"><a class="btn btn-secondary" href="{{ url_for('detail_record', entity=entity, record_id=record[cfg.key]) if editing else url_for('list_records', entity=entity) }}">Cancel</a><button type="submit" class="btn btn-primary">{{ icon('check', 18) }} {{ 'Save changes' if editing else 'Create ' ~ cfg.singular|lower }}</button></div>
+</form>
+<aside class="form-side"><div class="tips-card"><div class="tips-icon">{{ icon('match', 24) }}</div><h3>Good to know</h3><p>{% if entity == 'jobs' %}Required skills power the Job Match page. Enter them as comma-separated values so you can see a precise match percentage.{% elif entity == 'applications' %}Each application is linked to one job. Update the status as you progress from applied to interview or offer.{% elif entity == 'contacts' %}Contacts belong to companies. Keep your network information here for easy follow-ups.{% else %}Add companies first to connect job listings and recruiter contacts. This keeps your database relationships accurate.{% endif %}</p></div><div class="form-security">{{ icon('database', 18) }} Saved securely to your local MySQL database</div></aside></div>
+{% endblock %}
